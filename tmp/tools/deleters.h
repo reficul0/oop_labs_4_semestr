@@ -1,5 +1,5 @@
-﻿#ifndef ALPHA_SERVER_DELETER_H
-#define ALPHA_SERVER_DELETER_H
+﻿#ifndef DELETER_H
+#define DELETER_H
 
 #if defined _MSC_VER && _MSC_VER >= 1020u
 #pragma once

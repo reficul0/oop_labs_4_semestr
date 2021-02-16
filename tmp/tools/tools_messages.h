@@ -1,5 +1,5 @@
-﻿#ifndef ALPHA_SERVER_TOOLS_MESSAGES_H
-#define ALPHA_SERVER_TOOLS_MESSAGES_H
+﻿#ifndef TOOLS_MESSAGES_H
+#define TOOLS_MESSAGES_H
 
 #if defined _MSC_VER && _MSC_VER >= 1020u
 #pragma once

@@ -1,5 +1,5 @@
-﻿#ifndef ALPHA_SERVER_FILE_MUTEX_H
-#define ALPHA_SERVER_FILE_MUTEX_H
+﻿#ifndef FILE_MUTEX_H
+#define FILE_MUTEX_H
 
 #if defined _MSC_VER && _MSC_VER >= 1020u
 #pragma once
