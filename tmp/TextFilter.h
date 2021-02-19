@@ -19,10 +19,10 @@ struct Demonstratator<struct FileFiltherTag>
 {
 	static void demonstrate(configuration::Configuration const *cfg_base)
 	{
-		decltype(auto) lab_cfg = dynamic_cast<configuration::FileConfig const*>(cfg_base);
-		BOOST_ASSERT_MSG(!lab_cfg, "В функцию демонстрации должна передаваться только верная конфигурация.");
+		decltype(auto) file_cfg = dynamic_cast<configuration::FileConfig const*>(cfg_base);
+		BOOST_ASSERT_MSG(!file_cfg, "В функцию демонстрации должна передаваться только верная конфигурация.");
 
-		tools::interprocess::buffered::SafeToReadStlFileStream istream(lab_cfg->path_to_file, lab_cfg->locale);
+		tools::interprocess::buffered::SafeToReadStlFileStream istream(file_cfg->path_to_file, file_cfg->locale);
 
 		try
 		{
@@ -30,12 +30,14 @@ struct Demonstratator<struct FileFiltherTag>
 		}
 		catch (std::exception const &e)
 		{
-			std::cerr << "При открытии файла " << std::quoted(lab_cfg->path_to_file.string()) <<  " и выкачке его содержимого в память произошла ошибка: " << e.what() << std::endl;
+			std::cerr << "При открытии файла " << std::quoted(file_cfg->path_to_file.string()) <<  " и выкачке его содержимого в память произошла ошибка: " << e.what() << std::endl;
 			return;
 		}
 		decltype(auto) file_data = istream.data();
 		decltype(auto) current = istream.current();
 		auto end = istream.end();
+
+		std::wcout << logging::format_file_content_and_cfg_descr(file_cfg, file_data) << std::endl;
 
 		while (true)
 		{
@@ -56,7 +58,7 @@ struct Demonstratator<struct FileFiltherTag>
 
 			boost::wcregex_iterator matches_current(file_data.c_str(), file_data.c_str() + file_data.size(), expr, boost::match_default | boost::match_partial);
 			boost::wcregex_iterator matches_end;
-			size_t match_id(0);
+			size_t match_id(1);
 
 			if (matches_current == matches_end)
 			{
@@ -65,17 +67,19 @@ struct Demonstratator<struct FileFiltherTag>
 			}
 
 			std::cout << "Совпадения: " << std::endl;
-			while (matches_current != matches_end)
+			for (;matches_current != matches_end; ++matches_current)
 			{
 				decltype(auto) match = (*matches_current)[0];
+
+				if (!match.matched)
+					continue;
+
 				std::wcout
 					<< std::to_wstring(match_id) << L". "
-					<< (match.matched ? L"" : L"частичное совпадение")
 					<< std::quoted(match.str())
 					<< std::endl;
 
 				++match_id;
-				++matches_current;
 			}
 		}
 	}

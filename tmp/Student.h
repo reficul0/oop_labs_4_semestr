@@ -11,6 +11,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
 
+#include "logging.h"
 #include "Demonstratator.h"
 
 // lab 4 var.№1 Task: Student class
@@ -62,9 +63,9 @@ inline std::ostream& operator<<(std::ostream &destination, Student const &source
 		--source.performance.end(),
 		std::ostream_iterator<std::string>(destination, ","),
 		[](decltype(*source.performance.begin()) grade)
-	{
-		return std::string(delimiter) + "\t{" + grade.first + "," + (grade.second ? std::to_string(*grade.second) : "Nan") + "}";
-	}
+		{
+			return std::string(delimiter) + "\t{" + grade.first + "," + (grade.second ? std::to_string(*grade.second) : "Nan") + "}";
+		}
 	);
 	auto &last = *--source.performance.end();
 	destination << delimiter << "\t{" + last.first + "," + (last.second ? std::to_string(*last.second) : "Nan") + "}";
@@ -231,14 +232,14 @@ public:
 
 		static constexpr char const *students_delimiter = ";\n";
 		
-		std::cout << "_______________________________Все студенты:__________________________________________________________" << std::endl;
+		std::wcout << logging::format_header(L"Все студенты:") << std::endl;
 		std::copy(
 			students_by_group.begin(),
 			students_by_group.end(),
 			std::ostream_iterator<Student>(std::cout, students_delimiter)
 		);
 		
-		std::cout << "_______________________________Студенты, имеющие средний бал выше 4:__________________________________________________________" << std::endl;
+		std::wcout << logging::format_header(L"Студенты, имеющие средний бал выше 4:") << std::endl;
 		bool any_student = false;
 		std::copy_if(
 			students_by_group.begin(),
@@ -246,14 +247,14 @@ public:
 			std::ostream_iterator<Student>(std::cout, students_delimiter),
 			[&any_student](decltype(*students_by_group.begin()) student)
 			{
-				auto const grades_count = student.performance.size();
+				double const grades_count = student.performance.size();
 				double const average_score = grades_count
 					? std::accumulate(
 							student.performance.begin(), student.performance.end(), 
 							size_t{ 0 }, 
-							[](size_t result, decltype(*student.performance.begin()) grade)
+							[](size_t &result, decltype(*student.performance.begin()) grade)
 							{
-								return result + (grade.second ? *grade.second : 0);
+								return result += (grade.second ? *grade.second : 0);
 							}
 						) / grades_count
 					: 0;

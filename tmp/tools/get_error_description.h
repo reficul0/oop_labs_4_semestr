@@ -25,7 +25,7 @@ namespace tools
 		{
 			description_as_string = boost::locale::conv::utf_to_utf<wchar_t>(error_text, boost::locale::conv::method_type::stop);
 		}
-		catch (boost::locale::conv::conversion_error const &e)
+		catch (boost::locale::conv::conversion_error const &)
 		{
 			description_as_string.clear();
 		}

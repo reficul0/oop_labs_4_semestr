@@ -8,10 +8,28 @@
 
 namespace logging
 {
+	template<typename ContainerT>
+	inline std::string to_string(std::string name, ContainerT const &container)
+	{
+		std::stringstream ss;
+		ss << name << "{";
+		std::copy(
+			container.cbegin(), container.cend() - 1,
+			std::ostream_iterator<decltype(*container.cbegin())>(ss, ",")
+		);
+		ss << *(container.cend() - 1) << "}";
+		return ss.str();
+	}
+
+	static const std::wstring wrapper_part = L"___________________________________________";
 	inline std::wstring format_header(boost::wstring_view const &header)
 	{
-		static const std::wstring wrapper_part = L"---------------------";
 		return wrapper_part + header.to_string() + wrapper_part;
+	}	
+	inline boost::wstring_view format_header_end()
+	{
+		static const std::wstring wrapper = wrapper_part + wrapper_part;
+		return wrapper;
 	}
 
 	inline std::wstring format_tree_element(boost::wstring_view const &element)
@@ -23,9 +41,11 @@ namespace logging
 	{
 		std::wstringstream stream;
 		stream << logging::format_header(L"Конфигурация файла") << L'\n'
-			<< L"Файл:\n" << cfg->path_to_file << L'\n'
-			<< L"Содержимое:\n" << content
-			<< std::endl;
+			<< L"Файл:\n" 
+				<< cfg->path_to_file << L'\n'
+			<< L"Содержимое:\n" 
+				<< content << '\n' 
+			<< logging::format_header_end() << std::endl;
 
 		return stream.str();
 	}

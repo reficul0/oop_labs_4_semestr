@@ -9,6 +9,7 @@
 
 #include "tools/logging_allocator.h"
 
+#include "logging.h"
 #include "Demonstratator.h"
 
 
@@ -228,11 +229,11 @@ namespace container
 			return _data.end();
 		}
 
-		const_reverse_iterator cbegin() const noexcept
+		const_iterator cbegin() const noexcept
 		{
 			return rbegin();
 		}
-		const_reverse_iterator cend() const noexcept
+		const_iterator cend() const noexcept
 		{
 			return rend();
 		}
@@ -318,15 +319,15 @@ template<typename T>
 struct Demonstratator<container::Stack<T>>
 {
 	template<typename ContainerT>
-	static std::string to_string(std::string name, ContainerT &container)
+	static std::string to_string(std::string name, ContainerT const &container)
 	{
 		std::stringstream ss;
 		ss << name << "{";
 		std::copy(
-			container.begin(), container.end()-1,
+			container.cbegin(), container.cend()-1,
 			std::ostream_iterator<T>(ss, ",")
 		);
-		ss << *(container.end()-1) << "}";
+		ss << *(container.cend()-1) << "}";
 		return ss.str();
 	}
 
@@ -336,16 +337,16 @@ struct Demonstratator<container::Stack<T>>
 			container::Stack<T, tools::logging_allocator<T>> stack;
 			T i = 0;
 
-			std::cout << "________________________stack<T>.push(lval);______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"stack<T>.push(lval " + std::to_wstring(i) + L" );") << std::endl;
 			stack.push(i++);
-			std::cout << "________________________stack<T>.emplace(lval);______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"stack<T>.emplace(lval " + std::to_wstring(i) + L" );") << std::endl;
 			stack.emplace(i++);
-			std::cout << "________________________result stack<vector<T>>______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"result stack<vector<T>>") << std::endl;
 			std::cout << to_string("stack<T>", stack) << std::endl;
 
 			for (auto const &element : stack);
 
-			std::cout << "________________________~stack<T>______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"~stack<T>") << std::endl;
 		}
 
 		{
@@ -353,33 +354,35 @@ struct Demonstratator<container::Stack<T>>
 			container::Stack<value_type, tools::logging_allocator<value_type>> stack;
 			T i = 0;
 
-			std::cout << "________________________stack<vector<T>>.push(rval_vect);______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"stack<vector<T>>.push(rval_vect);") << std::endl;
+			std::cout << logging::to_string("vector<T>", value_type{ i++, i++, i++ }) << std::endl;
 			stack.push(value_type{ i++, i++, i++ });
 
 			{
-				std::cout << "________________________stack<vector<T>>.push(lval_vect);______________________________________" << std::endl;
+				std::wcout << logging::format_header(L"stack<vector<T>>.push(lval_vect);") << std::endl;	
 				value_type vect{ i++, i++, i++ };
+				std::cout << logging::to_string("vector<T>", vect) << std::endl;
 				stack.push(vect);
 
-				std::cout << "________________________stack<vector<T>>.push(std::move(lval_vect));______________________________________" << std::endl;
+				std::wcout << logging::format_header(L"stack<vector<T>>.push(std::move(lval_vect));") << std::endl;
 				value_type vect2{ i++, i++, i++ };
+				std::cout << logging::to_string("vector<T>", vect2) << std::endl;
 				stack.push(std::move(vect2));
 			}
-			std::cout << "________________________stack<vector<T>>.emplace(rval_initializer_list);______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"stack<vector<T>>.emplace(rval_initializer_list);") << std::endl;
 			stack.emplace(std::initializer_list<T>{i++, i++, i++});
 
 			
-			std::cout << "________________________result stack<vector<T>>______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"result stack<vector<T>>") << std::endl;
 			std::cout << "stack<vector<T>>{\n\t";
 			std::transform(
 				stack.begin(), stack.end()-1,
 				std::ostream_iterator<std::string>(std::cout, "\n\t"),
-				std::bind(&Demonstratator::template to_string<decltype(*stack.begin())>, "vector<T>", std::placeholders::_1)
+				std::bind(&logging::to_string<decltype(*stack.begin())>, "vector<T>", std::placeholders::_1)
 			);
-			std::cout << Demonstratator::template to_string("vector<T>", *(stack.end()-1)) << std::endl
-					<< "}" << std::endl;
+			std::cout << logging::to_string("vector<T>", *(stack.end()-1)) << std::endl;
 
-			std::cout << "________________________~stack<vector<T>>______________________________________" << std::endl;
+			std::wcout << logging::format_header(L"~stack<vector<T>>") << std::endl;
 		}
 	}
 };
