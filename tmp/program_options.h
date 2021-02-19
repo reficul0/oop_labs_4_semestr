@@ -24,6 +24,7 @@ enum class LabId : uint16_t
 	Stack = EnumFirstElement,
 	Student,
 	FileFilter,
+	TShapedSorter,
 	EnumElementsCount
 };
 
@@ -47,13 +48,13 @@ namespace configuration
 			return interval_type::closed((uint16_t)LabId::EnumFirstElement, (uint16_t)LabId::EnumElementsCount);
 		}
 	};
-	struct FileFilterConfig
+	struct FileConfig
 		: Configuration
 	{
 		std::experimental::filesystem::path path_to_file;
 		std::locale locale;
 
-		FileFilterConfig(
+		FileConfig(
 			decltype(lab_number) init_lab_number,
 			decltype(path_to_file) init_path_to_file,
 			decltype(locale) init_locale_id
@@ -63,8 +64,9 @@ namespace configuration
 			, locale(std::move(init_locale_id))
 		{
 		}
-		~FileFilterConfig() override = default;
+		~FileConfig() override = default;
 	};
+	
 
 	inline boost::program_options::variables_map get_program_options(int argc, char *argv[])
 	{
@@ -110,6 +112,8 @@ namespace configuration
 			return {};
 		}
 
+		po::notify(options);
+
 		auto lab_number_iter = options.find(OPTION_LAB_NUMBER);
 		if (lab_number_iter != options.end())
 		{
@@ -128,6 +132,23 @@ namespace configuration
 		return std::move(options);
 	}
 
+	inline std::unique_ptr<FileConfig> get_file_config(LabId lab_number, boost::program_options::variables_map const &options)
+	{
+		auto path_to_file = std::experimental::filesystem::absolute(options[OPTION_PATH_TO_FILE].as<std::wstring>());
+		std::locale file_locale;
+		boost::locale::generator locale_generator;
+		try
+		{
+			auto locale_id = boost::locale::conv::utf_to_utf<char>(options[OPTION_LOCALE_ID].as<std::wstring>());
+			file_locale = locale_generator(locale_id);
+		}
+		catch (const std::exception&)
+		{
+			file_locale = locale_generator("");
+		}
+		return std::make_unique<FileConfig>(lab_number, std::move(path_to_file), file_locale);
+	}
+
 	inline std::unique_ptr<Configuration> get_configuration(int argc, char *argv[])
 	{
 		auto const options = get_program_options(argc, argv);
@@ -137,12 +158,14 @@ namespace configuration
 		auto const lab_number = (LabId)options[OPTION_LAB_NUMBER].as<std::underlying_type_t<decltype(Configuration::lab_number)>>();
 		switch (lab_number)
 		{
-		case LabId::FileFilter:
-		{
-			auto path_to_file = std::experimental::filesystem::absolute(options[OPTION_PATH_TO_FILE].as<std::wstring>());
-			auto locale_id = boost::locale::conv::utf_to_utf<char>( options[OPTION_LOCALE_ID].as<std::wstring>() );
-			return std::make_unique<FileFilterConfig>(lab_number, std::move(path_to_file), boost::locale::generator().generate(locale_id));
-		}
+		case LabId::FileFilter: return get_file_config(lab_number, options);
+		case LabId::TShapedSorter: 
+			try
+			{
+				return get_file_config(lab_number, options);
+			}
+			catch (std::exception const &) 
+			{}
 		default:
 			return std::make_unique<Configuration>( lab_number );
 		}

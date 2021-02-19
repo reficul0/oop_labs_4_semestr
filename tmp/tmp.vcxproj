@@ -106,6 +106,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalOptions>-D_CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +154,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\oop_labs_4_semestr\tmp\logging.h" />
+    <ClInclude Include="..\..\oop_labs_4_semestr\tmp\TShapedSorter.h" />
     <ClInclude Include="Demonstratator.h" />
     <ClInclude Include="TextFilter.h" />
     <ClInclude Include="pch.h" />

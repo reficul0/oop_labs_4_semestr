@@ -13,13 +13,13 @@
 
 // Вариант 10
 // Написать программу, которая считывает английский текст из файла и выводит
-// на экран слова текста, начинающиеся с гласных букв и оканчивающиеся гласными буквами.// \b(?i)(([aeiou]\b)|[aeiou]([a-z]*)[aeiou])\b// вольный перевод: без учёта регистраЭ // \b граница значения// (?i) case insensetive// [aeiou] гласная// [a-z]* любая буква
+// на экран слова текста, начинающиеся с гласных букв и оканчивающиеся гласными буквами.// \b(?i)(([aeiou]\b)|[aeiou]([a-z]*)[aeiou])\b// \b граница значения// (?i) case insensetive// [aeiou] гласная// [a-z]* любая буква сколько угодно раз
 template<>
 struct Demonstratator<struct FileFiltherTag>
 {
 	static void demonstrate(configuration::Configuration const *cfg_base)
 	{
-		decltype(auto) lab_cfg = dynamic_cast<configuration::FileFilterConfig const*>(cfg_base);
+		decltype(auto) lab_cfg = dynamic_cast<configuration::FileConfig const*>(cfg_base);
 		BOOST_ASSERT_MSG(!lab_cfg, "В функцию демонстрации должна передаваться только верная конфигурация.");
 
 		tools::interprocess::buffered::SafeToReadStlFileStream istream(lab_cfg->path_to_file, lab_cfg->locale);

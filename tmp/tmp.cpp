@@ -16,10 +16,14 @@
 // LAB_5
 #include "TextFilter.h"
 
+// LAB_6
+#include "TShapedSorter.h"
+
 std::unordered_map<LabId, void(*)(configuration::Configuration const*)> labs_demonstrators{
 	{ LabId::Stack, &Demonstratator<container::Stack<bool>>::demonstrate },
 	{ LabId::Student, &Demonstratator<Student>::demonstrate },
-	{ LabId::FileFilter, &Demonstratator<FileFiltherTag>::demonstrate }
+	{ LabId::FileFilter, &Demonstratator<FileFiltherTag>::demonstrate },
+	{ LabId::TShapedSorter, &Demonstratator<TShapedSorter>::demonstrate }
 };
 
 int main(int argc, char *argv[])
