@@ -6,6 +6,10 @@
 #include <iterator>
 #include <sstream>
 #include <vector>
+#include <functional>
+
+#include <boost/type_index.hpp>
+#include <boost/bind.hpp>
 
 #include "tools/logging_allocator.h"
 
@@ -315,38 +319,80 @@ namespace container
 
 }
 
+template<typename CallerT, typename ArgT>
+auto log_stack_op(std::string foo_name, std::function<void()> foo, CallerT &&caller, ArgT &&arg)
+	->decltype(
+		decltype(std::to_string(arg))(),
+		void()
+	)
+{
+	static boost::format arg1_func_format("%1%.%2%(\n\t%3%=%4%\n);");
+
+	std::string caller_type_id = boost::typeindex::type_id<CallerT>().pretty_name();
+	std::cout << logging::format_block_begin() << '\n'
+		<< (arg1_func_format
+			% caller_type_id
+			% foo_name
+			% boost::typeindex::type_id_with_cvr<decltype(std::forward<ArgT>(arg))>().pretty_name()
+			% std::to_string(arg)
+		).str()
+	<< std::endl;
+
+	foo();
+}
+
+template<typename CallerT, typename ArgT>
+auto log_stack_op_with_nested_container(std::string foo_name, std::function<void()> foo, CallerT &&caller, ArgT &&arg)
+{
+	static boost::format arg1_func_format("%1%.%2%(\n\t%3%=%4%\n);");
+
+	std::string caller_type_id = boost::typeindex::type_id<CallerT>().pretty_name();
+	std::cout << logging::format_block_begin() << '\n'
+		<< (arg1_func_format
+				% caller_type_id
+				% foo_name
+				% boost::typeindex::type_id_with_cvr<decltype(std::forward<ArgT>(arg))>().pretty_name()
+				% logging::to_string(boost::typeindex::type_id<ArgT>().pretty_name(), arg)
+			).str()
+		<< std::endl;
+
+	foo();
+}
+
 template<typename T>
 struct Demonstratator<container::Stack<T>>
 {
-	template<typename ContainerT>
-	static std::string to_string(std::string name, ContainerT const &container)
-	{
-		std::stringstream ss;
-		ss << name << "{";
-		std::copy(
-			container.cbegin(), container.cend()-1,
-			std::ostream_iterator<T>(ss, ",")
-		);
-		ss << *(container.cend()-1) << "}";
-		return ss.str();
-	}
-
 	static void demonstrate(configuration::Configuration const*)
 	{
 		{
 			container::Stack<T, tools::logging_allocator<T>> stack;
 			T i = 0;
 
-			std::wcout << logging::format_header(L"stack<T>.push(lval " + std::to_wstring(i) + L" );") << std::endl;
-			stack.push(i++);
-			std::wcout << logging::format_header(L"stack<T>.emplace(lval " + std::to_wstring(i) + L" );") << std::endl;
-			stack.emplace(i++);
-			std::wcout << logging::format_header(L"result stack<vector<T>>") << std::endl;
-			std::cout << to_string("stack<T>", stack) << std::endl;
+
+			std::string stack_type_id = boost::typeindex::type_id<decltype(stack)>().pretty_name();
+
+			log_stack_op(
+				"push",
+				[&stack, &i]() { stack.push(i); },
+				stack,
+				i
+			);
+			++i;
+
+			log_stack_op(
+				"emplace",
+				[&stack, &i]() { stack.emplace(i); },
+				stack,
+				i
+			);
+			++i;
+
+			std::cout << logging::format_header("result") << std::endl;
+			std::cout << logging::to_string(stack_type_id, stack) << std::endl;
 
 			for (auto const &element : stack);
 
-			std::wcout << logging::format_header(L"~stack<T>") << std::endl;
+			std::cout << logging::format_header("~" + stack_type_id) << std::endl;
 		}
 
 		{
@@ -354,35 +400,53 @@ struct Demonstratator<container::Stack<T>>
 			container::Stack<value_type, tools::logging_allocator<value_type>> stack;
 			T i = 0;
 
-			std::wcout << logging::format_header(L"stack<vector<T>>.push(rval_vect);") << std::endl;
-			std::cout << logging::to_string("vector<T>", value_type{ i++, i++, i++ }) << std::endl;
-			stack.push(value_type{ i++, i++, i++ });
+			std::string stack_type_id = boost::typeindex::type_id<decltype(stack)>().pretty_name();
+			std::string value_type_id = boost::typeindex::type_id<value_type>().pretty_name();
+
+			log_stack_op_with_nested_container(
+				"push",
+				[&stack, &i]() { stack.push(value_type{ (T)i, T(i+1), T(i+2) }); },
+				stack,
+				value_type{ (T)i, T(i+1), T(i+2) }
+			);
+			i = T(i + 2);
+
+
+			log_stack_op_with_nested_container(
+				"push",
+				[&stack, &i]() { stack.push(value_type{ (T)i, T(i + 1), T(i + 2) }); },
+				stack,
+				value_type{ (T)i, T(i + 1), T(i + 2) }
+			);
+			i = T(i + 2);
 
 			{
-				std::wcout << logging::format_header(L"stack<vector<T>>.push(lval_vect);") << std::endl;	
 				value_type vect{ i++, i++, i++ };
-				std::cout << logging::to_string("vector<T>", vect) << std::endl;
-				stack.push(vect);
-
-				std::wcout << logging::format_header(L"stack<vector<T>>.push(std::move(lval_vect));") << std::endl;
-				value_type vect2{ i++, i++, i++ };
-				std::cout << logging::to_string("vector<T>", vect2) << std::endl;
-				stack.push(std::move(vect2));
+				log_stack_op_with_nested_container(
+					"push",
+					[&stack, &vect]() { stack.push(vect); },
+					stack,
+					vect
+				);
 			}
-			std::wcout << logging::format_header(L"stack<vector<T>>.emplace(rval_initializer_list);") << std::endl;
-			stack.emplace(std::initializer_list<T>{i++, i++, i++});
 
-			
-			std::wcout << logging::format_header(L"result stack<vector<T>>") << std::endl;
-			std::cout << "stack<vector<T>>{\n\t";
+			log_stack_op_with_nested_container(
+				"emplace",
+				[&stack, &i]() { stack.emplace(std::initializer_list<T>{ (T)i, T(i + 1), T(i + 2) }); },
+				stack,
+				std::initializer_list<T>{ (T)i, T(i + 1), T(i + 2) }
+			);
+
+			std::cout << logging::format_header("result") << std::endl;
+			std::cout << stack_type_id + "{\n\t";
 			std::transform(
 				stack.begin(), stack.end()-1,
 				std::ostream_iterator<std::string>(std::cout, "\n\t"),
-				std::bind(&logging::to_string<decltype(*stack.begin())>, "vector<T>", std::placeholders::_1)
+				[&value_type_id](decltype(*stack.begin()) current) { return logging::to_string(value_type_id, current); }
 			);
-			std::cout << logging::to_string("vector<T>", *(stack.end()-1)) << std::endl;
+			std::cout << logging::to_string(boost::typeindex::type_id<value_type>().pretty_name(), *(stack.end()-1)) << std::endl;
 
-			std::wcout << logging::format_header(L"~stack<vector<T>>") << std::endl;
+			std::cout << logging::format_header("~" + value_type_id) << std::endl;
 		}
 	}
 };

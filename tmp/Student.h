@@ -232,14 +232,14 @@ public:
 
 		static constexpr char const *students_delimiter = ";\n";
 		
-		std::wcout << logging::format_header(L"Все студенты:") << std::endl;
+		std::wcout << logging::wformat_header(L"Все студенты:") << std::endl;
 		std::copy(
 			students_by_group.begin(),
 			students_by_group.end(),
 			std::ostream_iterator<Student>(std::cout, students_delimiter)
 		);
 		
-		std::wcout << logging::format_header(L"Студенты, имеющие средний бал выше 4:") << std::endl;
+		std::wcout << logging::wformat_header(L"Студенты, имеющие средний бал выше 4:") << std::endl;
 		bool any_student = false;
 		std::copy_if(
 			students_by_group.begin(),

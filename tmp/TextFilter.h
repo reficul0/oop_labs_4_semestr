@@ -37,7 +37,7 @@ struct Demonstratator<struct FileFiltherTag>
 		decltype(auto) current = istream.current();
 		auto end = istream.end();
 
-		std::wcout << logging::format_file_content_and_cfg_descr(file_cfg, file_data) << std::endl;
+		std::wcout << logging::wformat_file_content_and_cfg_descr(file_cfg, file_data) << std::endl;
 
 		while (true)
 		{
