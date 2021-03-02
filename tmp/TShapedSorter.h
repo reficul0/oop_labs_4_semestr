@@ -30,6 +30,7 @@ struct Demonstratator<struct TShapedSorter>
 		if (!file_cfg)
 		{
 			std::wcout << demonstrate(std::wcin);
+			std::wcout << L"Ваш ввод:";
 			return;
 		}
 		

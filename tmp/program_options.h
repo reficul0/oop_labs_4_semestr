@@ -91,15 +91,15 @@ namespace configuration
 			)
 			(
 				(full_and_short_option_fmt % OPTION_LOCALE_ID % SHORT_OPTION_LOCALE_ID).str().c_str(),
-				po::wvalue<std::wstring>(),
+				po::wvalue<std::wstring>()->default_value(
+					boost::locale::conv::utf_to_utf<wchar_t>(system_locale),
+					system_locale
+				),
 				"Locale id in format: language_country.encoding"
 			)
 			(
 				(full_and_short_option_fmt % OPTION_PATH_TO_FILE % SHORT_PATH_TO_FILE).str().c_str(),
-				po::wvalue<std::wstring>()->default_value(
-					boost::locale::conv::utf_to_utf<wchar_t>(system_locale), 
-					system_locale
-				),
+				po::wvalue<std::wstring>(),
 				"Absolute or relative path to the file"
 			);
 
