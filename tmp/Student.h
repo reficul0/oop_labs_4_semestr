@@ -251,7 +251,7 @@ public:
 				double const average_score = grades_count
 					? std::accumulate(
 							student.performance.begin(), student.performance.end(), 
-							size_t{ 0 }, 
+							double{ 0 }, 
 							[](size_t &result, decltype(*student.performance.begin()) grade)
 							{
 								return result += (grade.second ? *grade.second : 0);

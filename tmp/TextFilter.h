@@ -6,6 +6,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/regex.hpp>
 #include <boost/regex.hpp>
+#include <boost/cast.hpp>
 
 #include "program_options.h"
 #include "Demonstratator.h"
@@ -19,9 +20,7 @@ struct Demonstratator<struct FileFiltherTag>
 {
 	static void demonstrate(configuration::Configuration const *cfg_base)
 	{
-		decltype(auto) file_cfg = dynamic_cast<configuration::FileConfig const*>(cfg_base);
-		BOOST_ASSERT_MSG(!file_cfg, "В функцию демонстрации должна передаваться только верная конфигурация.");
-
+		decltype(auto) file_cfg = boost::polymorphic_cast<configuration::FileConfig const*>(cfg_base);
 		tools::interprocess::buffered::SafeToReadStlFileStream istream(file_cfg->path_to_file, file_cfg->locale);
 
 		try
