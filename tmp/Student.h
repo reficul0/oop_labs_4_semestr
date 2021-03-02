@@ -252,7 +252,7 @@ public:
 					? std::accumulate(
 							student.performance.begin(), student.performance.end(), 
 							double{ 0 }, 
-							[](size_t &result, decltype(*student.performance.begin()) grade)
+							[](double &result, decltype(*student.performance.begin()) grade)
 							{
 								return result += (grade.second ? *grade.second : 0);
 							}
